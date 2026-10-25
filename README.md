@@ -78,7 +78,27 @@ Après fusion sur `main`, la CI est conçue pour publier automatiquement les ima
 - Tags immuables au niveau Git SHA : `sha-<commit-complet>`
 - Tags de version lorsque l'on pousse un tag Git `vX.Y.Z`
 
-**Les images ne sont pas supposées exister avant la première publication réussie** ; leur visibilité GHCR doit aussi être vérifiée avant le cours. Pour des déploiements reproductibles, préférez un digest `@sha256:...` à `:latest`.
+### Images publiques validées (publication du 25 octobre 2026)
+
+Les deux images ci-dessous ont été **téléchargées anonymement et vérifiées avec Cosign** depuis un runner GitHub sans accès privilégié à GHCR. Pour les TP, privilégiez ces digests plutôt que `latest`, qui peut évoluer :
+
+```bash
+docker pull ghcr.io/sebastien-ribiere/opsboard-api@sha256:38adf270e324f8c955abac09fd3cbdd336925078f74890fc35df22ef295bc0b1
+docker pull ghcr.io/sebastien-ribiere/opsboard-web@sha256:b885b991b1d80064fdbd9ac55658ee1c06eb78a44ffe94baab109e4b1016cb40
+```
+
+Le tag de commit correspondant est `sha-6aa20529e64dab81ade8a4af3ba54a12bc1e2a17` pour les deux images. Contrairement aux digests, les tags ne sont pas intrinsèquement immuables.
+
+Pour vérifier la signature keyless (si `cosign` est installé) :
+
+```bash
+cosign verify \
+  --certificate-identity 'https://github.com/sebastien-ribiere/OpsBoard/.github/workflows/ci.yml@refs/heads/main' \
+  --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
+  ghcr.io/sebastien-ribiere/opsboard-api@sha256:38adf270e324f8c955abac09fd3cbdd336925078f74890fc35df22ef295bc0b1
+```
+
+Même commande pour `opsboard-web` en remplaçant son nom et son digest. Le [test automatisé de tirage anonyme et de signature](.github/workflows/verify-ghcr-public.yml) valide les deux images sans authentification, et échoue si elles ne sont plus accessibles ou si la signature attendue manque.
 
 ## Simuler les incidents de santé
 
