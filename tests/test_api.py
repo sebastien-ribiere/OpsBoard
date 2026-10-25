@@ -45,6 +45,81 @@ class RouteTests(unittest.TestCase):
         self.assertEqual(response_for("/missing", 0)[0], 404)
 
 
+    def test_status_defaults_and_overrides(self):
+        with patch.dict(os.environ, {}, clear=True):
+            code, data = response_for("/status", elapsed=0)
+        self.assertEqual(code, 200)
+        self.assertEqual(data["environment"], "lab")
+        self.assertEqual(data["message"], "Kubernetes est prêt !")
+
+        with patch.dict(
+            os.environ,
+            {"ENVIRONNEMENT": "staging", "MESSAGE_BANNIERE": "Ready"},
+            clear=True,
+        ):
+            code, data = response_for("/status", elapsed=0)
+        self.assertEqual(code, 200)
+        self.assertEqual(data["environment"], "staging")
+        self.assertEqual(data["message"], "Ready")
+
+    def test_version_uses_dev_when_not_configured(self):
+        with patch.dict(os.environ, {}, clear=True):
+            code, data = response_for("/version", elapsed=0)
+        self.assertEqual((code, data), (200, {"version": "dev"}))
+
+    def test_liveness_defaults_to_healthy(self):
+        with patch.dict(os.environ, {}, clear=True):
+            code, data = response_for("/health/live", elapsed=0)
+        self.assertEqual((code, data), (200, {"status": "alive"}))
+
+    def test_readiness_defaults_to_ready(self):
+        with patch.dict(os.environ, {}, clear=True):
+            code, data = response_for("/health/ready", elapsed=0)
+        self.assertEqual((code, data), (200, {"status": "ready"}))
+
+    def test_failed_probes_have_expected_payloads(self):
+        with patch.dict(
+            os.environ,
+            {"OPSBOARD_LIVE": "false", "OPSBOARD_READY": "false"},
+            clear=True,
+        ):
+            live = response_for("/health/live", elapsed=0)
+            ready = response_for("/health/ready", elapsed=0)
+        self.assertEqual(live, (503, {"status": "failed"}))
+        self.assertEqual(ready, (503, {"status": "not-ready"}))
+
+    def test_startup_without_delay_is_ready(self):
+        with patch.dict(os.environ, {}, clear=True):
+            code, data = response_for("/health/startup", elapsed=0)
+        self.assertEqual((code, data), (200, {"status": "started"}))
+
+    def test_startup_matches_exact_threshold(self):
+        with patch.dict(os.environ, {"STARTUP_DELAY_SECONDS": "15"}, clear=True):
+            before = response_for("/health/startup", elapsed=14.99)
+            at_threshold = response_for("/health/startup", elapsed=15.0)
+        self.assertEqual(before, (503, {"status": "starting"}))
+        self.assertEqual(at_threshold, (200, {"status": "started"}))
+
+    def test_invalid_startup_delay_falls_back_to_zero(self):
+        with patch.dict(
+            os.environ, {"STARTUP_DELAY_SECONDS": "invalid"}, clear=True
+        ):
+            code, data = response_for("/health/startup", elapsed=0)
+        self.assertEqual((code, data), (200, {"status": "started"}))
+
+    def test_negative_startup_delay_is_clamped_to_zero(self):
+        with patch.dict(os.environ, {"STARTUP_DELAY_SECONDS": "-10"}, clear=True):
+            code, data = response_for("/health/startup", elapsed=0)
+        self.assertEqual((code, data), (200, {"status": "started"}))
+
+    def test_unrecognized_path_returns_json_404(self):
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(
+                response_for("/health/unknown", elapsed=0),
+                (404, {"error": "not found"}),
+            )
+
+
 class HttpTests(unittest.TestCase):
     def test_real_http_json_contract(self):
         server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
