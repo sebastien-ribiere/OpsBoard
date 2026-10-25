@@ -1,0 +1,38 @@
+services:
+  opsboard-api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    environment:
+      ENVIRONNEMENT: local
+      MESSAGE_BANNIERE: "OpsBoard tourne avec Docker Compose"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "/usr/bin/python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health/live', timeout=2)"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+      start_period: 3s
+
+  opsboard-web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      opsboard-api:
+        condition: service_healthy
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+      - /var/run

@@ -1,0 +1,17 @@
+* { box-sizing: border-box; }
+:root { color-scheme: dark; font-family: system-ui, -apple-system, sans-serif; }
+body { margin: 0; background: #0e1a2b; color: #f3f8fc; }
+.shell { max-width: 780px; margin: 0 auto; padding: 4rem 1.5rem; }
+.eyebrow { color: #52d6c8; font-size: .78rem; letter-spacing: .15em; font-weight: 700; }
+h1 { margin: .4rem 0; font-size: clamp(2.7rem, 8vw, 4.5rem); }
+.subtitle, footer { color: #9fbbcd; }
+.panel { background: #1c2e43; padding: 2rem; margin-top: 2rem; border: 1px solid #31536a; border-radius: 16px; }
+.label { color: #52d6c8; font-size: .85rem; text-transform: uppercase; letter-spacing: .08em; }
+#banner { font-size: 1.5rem; min-height: 2rem; }
+.meta { display: flex; flex-wrap: wrap; gap: 1.5rem; border-block: 1px solid #38536b; padding: 1rem 0; }
+h2 { font-size: 1.05rem; margin-top: 1.5rem; }
+li { padding: .5rem 0; }
+#error { color: #ffbcae; min-height: 1.3rem; }
+button { background: #52d6c8; border: 0; color: #0e1a2b; padding: .75rem 1.3rem; border-radius: 8px; font-weight: 700; cursor: pointer; }
+button:focus-visible { outline: 3px solid white; outline-offset: 3px; }
+footer { margin-top: 2rem; font-size: .8rem; }
