@@ -1,7 +1,6 @@
-FROM python:3.13-slim-trixie
+FROM gcr.io/distroless/python3-debian13:nonroot
 
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
+ENV PYTHONDONTWRITEBYTECODE=1 \
     PORT=8080
 
 ARG APP_VERSION=dev
@@ -10,6 +9,7 @@ ENV APP_VERSION=${APP_VERSION}
 WORKDIR /app
 COPY api/opsboard/ /app/opsboard/
 
-USER 10001:10001
+USER 65532:65532
 EXPOSE 8080
-CMD ["python", "-m", "opsboard.app"]
+ENTRYPOINT ["/usr/bin/python3"]
+CMD ["-m", "opsboard.app"]
