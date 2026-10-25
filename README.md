@@ -115,6 +115,8 @@ Ce dépôt fournit **l'application de base et sa CI**. Les manifests étudiants,
 
 Sur `main` ou un tag `v*`, **seulement après réussite des contrôles**, le pipeline est conçu pour publier dans GHCR avec un jeton GitHub à permissions limitées, une SBOM et une attestation de provenance BuildKit, puis signer chaque image **par digest avec Cosign et OIDC** (sans clé privée longue durée).
 
+L'image API utilise un runtime Python **distroless sans shell** ; pour l'inspection d'un Pod, utiliser les logs, les sondes, les événements et éventuellement un conteneur de debug éphémère.
+
 Les permissions `packages: write` et `id-token: write` ne sont accordées qu'au job de publication. Les dépendances Actions et Docker sont surveillées par Dependabot. Les actions sont référencées par SHA de commit.
 
 **Limites :** les tags des images de base restent flottants pour recevoir les mises à jour de sécurité ; un scan peut bloquer une livraison si l'amont publie une vulnérabilité. Les images ne sont pas encore déployées automatiquement sur un cluster. Ni l'existence d'une SBOM, ni un scan réussi, ni une signature ne garantissent l'absence de vulnérabilités.
