@@ -10,6 +10,8 @@ import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit
 
+from . import lab_faults
+
 STARTED_AT = time.monotonic()
 
 
@@ -21,11 +23,11 @@ def is_enabled(key: str) -> bool:
 def response_for(path: str, elapsed: float) -> tuple[int, dict]:
     """Return an HTTP status and JSON document for an endpoint."""
     if path == "/health/live":
-        healthy = is_enabled("OPSBOARD_LIVE")
+        healthy = is_enabled("OPSBOARD_LIVE") and lab_faults.state.live
         return (200 if healthy else 503, {"status": "alive" if healthy else "failed"})
 
     if path == "/health/ready":
-        ready = is_enabled("OPSBOARD_READY")
+        ready = is_enabled("OPSBOARD_READY") and lab_faults.state.ready
         return (200 if ready else 503, {"status": "ready" if ready else "not-ready"})
 
     if path == "/health/startup":
@@ -70,6 +72,7 @@ class Handler(BaseHTTPRequestHandler):
 
 def main() -> None:
     """Start the application on the unprivileged container port."""
+    lab_faults.register_lab_signals()
     port = int(os.getenv("PORT", "8080"))
     server = ThreadingHTTPServer(("0.0.0.0", port), Handler)  # nosec B104
     try:
