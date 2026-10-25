@@ -55,7 +55,7 @@ def response_for(path: str, elapsed: float) -> tuple[int, dict]:
 class Handler(BaseHTTPRequestHandler):
     """Serve a few intentionally simple JSON endpoints."""
 
-    def do_GET(self) -> None:  # noqa: N802 (stdlib handler API)
+    def do_GET(self) -> None:
         path = urlsplit(self.path).path
         status, document = response_for(path, time.monotonic() - STARTED_AT)
         payload = json.dumps(document, ensure_ascii=False).encode("utf-8")
