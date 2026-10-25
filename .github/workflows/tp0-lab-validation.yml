@@ -1,0 +1,134 @@
+name: TP0 — three-node Minikube lab validation
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/tp0-lab-validation.yml'
+      - 'scripts/lab/**'
+      - 'teaching/TP0-lab-runbook.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tp0-minikube-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux-docker-lab:
+    name: Linux Docker / 3 nodes / Calico / Traefik / CSI
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check runner resources and tools
+        run: |
+          set -euo pipefail
+          docker info
+          kubectl version --client
+          python3 --version
+          free -h
+          nproc
+
+      - name: Install official Minikube v1.39.0 release
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --connect-timeout 20 \
+            -o /tmp/minikube \
+            https://github.com/kubernetes/minikube/releases/download/v1.39.0/minikube-linux-amd64
+          sudo install -m 0755 /tmp/minikube /usr/local/bin/minikube
+          minikube version
+
+      - name: Start three-node cluster with Calico and containerd
+        run: |
+          set -euo pipefail
+          minikube start -p opsboard-lab \
+            --driver=docker --nodes=3 --cni=calico \
+            --container-runtime=containerd \
+            --kubernetes-version=v1.37.0 \
+            --cpus=2 --memory=2560
+          kubectl config use-context opsboard-lab
+          kubectl wait --for=condition=Ready nodes --all --timeout=360s
+          kubectl get nodes -o wide
+
+      - name: Install required lab addons
+        run: |
+          set -euo pipefail
+          minikube addons enable storage-provisioner -p opsboard-lab
+          minikube addons enable default-storageclass -p opsboard-lab
+          minikube addons enable csi-hostpath-driver -p opsboard-lab
+          minikube addons enable traefik -p opsboard-lab
+          minikube addons enable ingress-dns -p opsboard-lab
+          kubectl create namespace opsboard --dry-run=client -o yaml | kubectl apply -f -
+          kubectl get pods -A
+          kubectl get storageclasses
+          kubectl get ingressclasses
+
+      - name: Wait for addons
+        run: |
+          set -euo pipefail
+          # Addon readiness is checked again by the strict Python validator.
+          for i in $(seq 1 50); do
+            if python3 scripts/lab/verify.py --require-ingress-dns; then
+              exit 0
+            fi
+            echo "Addon convergence check $i/50"
+            sleep 6
+          done
+          python3 scripts/lab/verify.py --require-ingress-dns
+
+      - name: Exercise CSI Hostpath claim scheduling
+        run: |
+          set -euo pipefail
+          kubectl create namespace tp0-smoke --dry-run=client -o yaml | kubectl apply -f -
+          cat <<'YAML' | kubectl apply -n tp0-smoke -f -
+          apiVersion: v1
+          kind: PersistentVolumeClaim
+          metadata:
+            name: data
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            storageClassName: csi-hostpath-sc
+            resources:
+              requests:
+                storage: 64Mi
+          ---
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: volume-consumer
+          spec:
+            restartPolicy: Never
+            containers:
+              - name: api
+                image: ghcr.io/sebastien-ribiere/opsboard-api:tp5-v1
+                ports:
+                  - containerPort: 8080
+                volumeMounts:
+                  - name: data
+                    mountPath: /app/data
+            volumes:
+              - name: data
+                persistentVolumeClaim:
+                  claimName: data
+          YAML
+          kubectl wait -n tp0-smoke --for=condition=Ready pod/volume-consumer --timeout=240s
+          test "$(kubectl get pvc data -n tp0-smoke -o jsonpath='{.status.phase}')" = "Bound"
+          kubectl get pvc,pod -n tp0-smoke -o wide
+
+      - name: Diagnose lab if verification fails
+        if: failure()
+        run: |
+          minikube status -p opsboard-lab || true
+          minikube addons list -p opsboard-lab || true
+          kubectl get nodes -o wide || true
+          kubectl get pods -A -o wide || true
+          kubectl get events -A --sort-by=.lastTimestamp | tail -n 100 || true
+          kubectl describe pvc data -n tp0-smoke || true
+
+      - name: Clean up smoke namespace
+        if: always()
+        run: kubectl delete namespace tp0-smoke --ignore-not-found --wait=false || true
