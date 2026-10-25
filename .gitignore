@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+.env
+*.pem
+*.key
+*.crt
+dist/
+build/
+.DS_Store

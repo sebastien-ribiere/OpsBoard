@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="OpsBoard, laboratoire d'orchestration Kubernetes.">
+  <title>OpsBoard · Kubernetes Lab</title>
+  <link rel="stylesheet" href="/style.css">
+  <script defer src="/app.js"></script>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <p class="eyebrow">INFAL127 / LAB KUBERNETES</p>
+      <h1>OpsBoard</h1>
+      <p class="subtitle">État des services de notre application distribuée.</p>
+    </header>
+    <section class="panel" aria-live="polite">
+      <p class="label">Message de l'API</p>
+      <p id="banner">Connexion à l'API...</p>
+      <div class="meta">
+        <span>Environnement : <strong id="environment">—</strong></span>
+        <span>Version API : <strong id="version">—</strong></span>
+      </div>
+      <h2>Composants</h2>
+      <ul id="components"></ul>
+      <p id="error" role="status"></p>
+      <button id="refresh" type="button">Actualiser</button>
+    </section>
+    <footer>Déployé et maintenu par les étudiants · CESI</footer>
+  </main>
+</body>
+</html>
