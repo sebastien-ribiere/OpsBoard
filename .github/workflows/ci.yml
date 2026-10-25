@@ -76,7 +76,7 @@ jobs:
       - name: Check frontend and proxied API
         run: |
           set -euo pipefail
-          curl --retry 20 --retry-delay 2 --retry-connrefused --fail http://localhost:8080/healthz
+          curl --retry 20 --retry-delay 2 --retry-all-errors --fail http://localhost:8080/healthz
           curl --retry 20 --retry-delay 2 --retry-all-errors --fail http://localhost:8080/api/status | grep -q '"application": "OpsBoard"'
           curl --retry 20 --retry-delay 2 --retry-all-errors --fail http://localhost:8080/api/version | grep -q '"version":'
       - name: Collect container logs on failure
