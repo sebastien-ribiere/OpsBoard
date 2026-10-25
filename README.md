@@ -113,6 +113,16 @@ La configuration de l'API se fait par variables d'environnement au démarrage du
 | `OPSBOARD_LIVE` | `true` | `false` : liveness HTTP 503 |
 | `STARTUP_DELAY_SECONDS` | `0` | Délai simulé avant le succès de startup |
 | `SVC_TOKEN` | absent | Valeur fictive pour le TP Secret, jamais retournée par l'API |
+| `OPSBOARD_ENABLE_LAB_SIGNALS` | `false` | Active des pannes de probes temporaires dans un conteneur de labo |
+
+### Incidents de probes en cours d'exécution (TP 4)
+
+L'API prend désormais en charge des **signaux Unix locaux, désactivés par défaut**. Une fois `OPSBOARD_ENABLE_LAB_SIGNALS=true` défini dans l'environnement du conteneur, `SIGUSR1` bascule la readiness entre HTTP 200 et 503, et `SIGUSR2` bascule la liveness. Le code ne crée **aucun endpoint HTTP d'administration**, ni nouveau port d'écoute. Une startup probe peut être exercée indépendamment avec `STARTUP_DELAY_SECONDS`.
+
+Les signaux s'envoient au processus Python PID 1 *à l'intérieur du Pod*, avec les droits `pods/exec` nécessaires. La liveness peut faire redémarrer le conteneur et réinitialiser son état, ce qui est précisément un comportement à observer en TP.
+
+[Mode opératoire du TP 4 (signaux, sécurité, observations)](teaching/TP4-live-probes.md). Ce mécanisme est réservé à un cluster de laboratoire : **ne pas activer l'injection de pannes dans un environnement de production**.
+
 
 Par exemple, pour le TP probes, faites évoluer les variables dans le Deployment et observez les événements, les EndpointSlices et les redémarrages. **Ne déployez pas le mode de panne volontaire en production.**
 
