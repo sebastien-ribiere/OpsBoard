@@ -12,7 +12,7 @@ permissions: {}
 
 jobs:
   anonymous-pull:
-    name: Pull and verify ${{ matrix.image }}
+    name: Pull and verify ${{ matrix.name }}
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     strategy:
@@ -20,9 +20,25 @@ jobs:
       matrix:
         include:
           - image: api
+            identity_workflow: ci.yml
+            name: base-api
             digest: sha256:38adf270e324f8c955abac09fd3cbdd336925078f74890fc35df22ef295bc0b1
           - image: web
+            identity_workflow: ci.yml
+            name: base-web
             digest: sha256:b885b991b1d80064fdbd9ac55658ee1c06eb78a44ffe94baab109e4b1016cb40
+          - image: api
+            name: tp5-v1
+            identity_workflow: teaching-releases.yml
+            digest: sha256:00de72240c1152ffb9fb064ae357d1a169d2a2fbcc407b112044be4f5d7637a4
+          - image: api
+            name: tp5-v2
+            identity_workflow: teaching-releases.yml
+            digest: sha256:dcd10123071013624597bb1a5300b85ffc25a0f611acd6a6bba029f1859d2688
+          - image: api
+            name: tp5-incident
+            identity_workflow: teaching-releases.yml
+            digest: sha256:e3a1b497a0ff7bb86a73aa937eeb3ab502c882c19d8941ad161b0b268359a0c0
     steps:
       - name: Pull published image without any registry login
         env:
@@ -39,9 +55,10 @@ jobs:
         env:
           IMAGE: ghcr.io/sebastien-ribiere/opsboard-${{ matrix.image }}
           DIGEST: ${{ matrix.digest }}
+          SIGNING_WORKFLOW: ${{ matrix.identity_workflow }}
         run: |
           set -euo pipefail
           cosign verify \
-            --certificate-identity 'https://github.com/sebastien-ribiere/OpsBoard/.github/workflows/ci.yml@refs/heads/main' \
+            --certificate-identity "https://github.com/sebastien-ribiere/OpsBoard/.github/workflows/${SIGNING_WORKFLOW}@refs/heads/main" \
             --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
             "${IMAGE}@${DIGEST}"
