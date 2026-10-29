@@ -1,5 +1,7 @@
 # TP 0 — Recette du laboratoire Kubernetes (édition formateur)
 
+> **Toutes les commandes de TP0 (Linux/WSL2, PowerShell, macOS) sont regroupées dans [TP0-commandes.md](TP0-commandes.md)**. Le présent document détaille les raisons, les limites et le dépannage.
+
 **Périmètre :** Minikube v1.39+ sur trois nœuds (un control-plane, deux workers), Docker comme driver, `containerd` comme runtime, Calico comme CNI, Traefik, storage-provisioner/default-storageclass, CSI Hostpath et ingress-dns (selon accessibilité réseau du poste).
 
 L'installation est **réalisée par les étudiants**, pas automatiquement par une commande opaque. Ce guide constitue une recette et une aide au diagnostic, en complément du [livret INFAL127](https://docs.google.com/document/d/1tULJJfFAIKUSN0MpHH2MQZ1VNsENxxCd6jCnYflQD1M/edit). Les commandes ci-dessous sont des exemples à comprendre, pas un corrigé des TP applicatifs.
