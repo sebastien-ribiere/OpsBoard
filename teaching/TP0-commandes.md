@@ -92,6 +92,15 @@ minikube addons list -p opsboard-lab
 
 **Attention :** l'activation de `ingress-dns` installe le service dans le cluster ; elle **ne configure pas le DNS du poste**. Cela sera testé au TP Ingress. Sous Windows/macOS et Docker Desktop, `minikube ip` n'est pas forcément directement accessible depuis l'hôte. Le CSI Hostpath **ne réplique pas** les données entre nœuds. Ne pas activer l'ancien addon `ingress` (NGINX), incompatible avec Traefik.
 
+### Bonus facultatif — métriques Kubernetes (HPA / TP 5)
+
+```sh
+minikube addons enable metrics-server -p opsboard-lab
+kubectl top nodes
+```
+
+Cette étape n'est **pas requise pour valider le TP 0** et peut être reportée si le cluster vient juste de démarrer (les métriques mettent parfois du temps à apparaître).
+
 ## C — Vérification automatique, facultative
 
 Ces commandes nécessitent Git et Python 3.10+. Le fichier `scripts/lab/verify.py` appartient à la [PR de recette TP0](https://github.com/sebastien-ribiere/OpsBoard/pull/11) jusqu'à sa fusion.
