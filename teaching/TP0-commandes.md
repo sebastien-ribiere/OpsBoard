@@ -101,16 +101,30 @@ kubectl top nodes
 
 Cette étape n'est **pas requise pour valider le TP 0** et peut être reportée si le cluster vient juste de démarrer (les métriques mettent parfois du temps à apparaître).
 
+### Manifestes YAML pour vérifier le CSI Hostpath
+
+Les fichiers Kubernetes du TP 0 sont regroupés dans [`labs/tp0/`](../labs/tp0/README.md). Pour les appliquer depuis la racine du dépôt :
+
+```sh
+kubectl apply -f labs/tp0/00-namespaces.yaml
+kubectl apply -f labs/tp0/10-csi-pvc.yaml
+kubectl apply -f labs/tp0/20-csi-pod.yaml
+kubectl wait -n tp0-smoke --for=condition=Ready pod/volume-consumer --timeout=240s
+kubectl get pvc,pod -n tp0-smoke -o wide
+
+# Nettoyer le test sans supprimer opsboard
+kubectl delete namespace tp0-smoke
+```
+
+Ces YAML testent le PVC et son montage. Le CNI et les addons Minikube sont gérés par les commandes ci-dessus, pas par des manifests étudiants.
+
 ## C — Vérification automatique, facultative
 
-Ces commandes nécessitent Git et Python 3.10+. Le fichier `scripts/lab/verify.py` appartient à la [PR de recette TP0](https://github.com/sebastien-ribiere/OpsBoard/pull/11) jusqu'à sa fusion.
+Ces commandes nécessitent Git et Python 3.10+. Le fichier `scripts/lab/verify.py` est inclus dans le dépôt.
 
 ```bash
 git clone https://github.com/sebastien-ribiere/OpsBoard.git
 cd OpsBoard
-# Tant que la PR #11 n'est pas fusionnée :
-git fetch origin feat/tp0-minikube-lab-recipe
-git switch --track origin/feat/tp0-minikube-lab-recipe
 # Sur Linux/WSL2/macOS :
 python3 scripts/lab/verify.py --profile opsboard-lab --require-ingress-dns
 ```

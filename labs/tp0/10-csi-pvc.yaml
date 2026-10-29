@@ -1,0 +1,16 @@
+# TP 0 : claim local pour verifier le provisionnement CSI Hostpath.
+# Ce stockage local n'est pas HA et ne replique pas les donnees entre noeuds.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: data
+  namespace: tp0-smoke
+  labels:
+    app.kubernetes.io/part-of: opsboard
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: csi-hostpath-sc
+  resources:
+    requests:
+      storage: 64Mi
