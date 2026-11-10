@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opsboard-api
+  namespace: infal122-lab
+  labels:
+    app: opsboard-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opsboard-api
+  template:
+    metadata:
+      labels:
+        app: opsboard-api
+    spec:
+      containers:
+        - name: opsboard-api
+          image: ghcr.io/sebastien-ribiere/opsboard-api:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: opsboard-api-config
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opsboard-api
+  namespace: infal122-lab
+  labels:
+    app: opsboard-api
+spec:
+  type: ClusterIP
+  selector:
+    app: opsboard-api
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: opsboard
+description: OpsBoard (web + api) avec ConfigMap, Ingress Traefik, Gateway API Envoy et PVC de démonstration
+type: application
+version: 0.1.0
+appVersion: "latest"

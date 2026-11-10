@@ -1,0 +1,47 @@
+api:
+  image:
+    repository: ghcr.io/sebastien-ribiere/opsboard-api
+    tag: latest
+    pullPolicy: Always
+  replicas: 1
+  port: 8080
+  config:
+    ENVIRONNEMENT: "infal122-lab"
+    MESSAGE_BANNIERE: "🚀 OpsBoard a décollé ! Les pods sont dans l'espace, et celui-ci a promis de ne pas crasher (cette fois)."
+  resources:
+    requests: {cpu: 50m, memory: 64Mi}
+    limits: {cpu: 200m, memory: 128Mi}
+
+web:
+  image:
+    repository: ghcr.io/sebastien-ribiere/opsboard-web
+    tag: latest
+    pullPolicy: Always
+  replicas: 1
+  port: 8080
+  resources:
+    requests: {cpu: 25m, memory: 32Mi}
+    limits: {cpu: 100m, memory: 64Mi}
+
+ingress:
+  enabled: true
+  className: traefik
+  host: opsboard.infal122.lab
+
+gateway:
+  enabled: true
+  className: eg
+  host: opsboard-gw.infal122.lab
+  tls:
+    enabled: true
+    # Secret TLS à créer hors du chart (la clé privée ne doit pas être versionnée) :
+    # kubectl create secret tls opsboard-gw-tls -n <ns> --cert=tls.crt --key=tls.key
+    secretName: opsboard-gw-tls
+
+# PVC de démonstration (TP stockage) : non monté par l'API, qui reste stateless.
+persistence:
+  enabled: true
+  name: opsboard-data
+  size: 100Mi
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: ""   # vide = StorageClass par défaut

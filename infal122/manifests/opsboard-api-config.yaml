@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opsboard-api-config
+  namespace: infal122-lab
+  labels:
+    app: opsboard-api
+data:
+  ENVIRONNEMENT: "infal122-lab"
+  MESSAGE_BANNIERE: "OpsBoard est dans le Kube ! Et celui-ci a promis de ne pas crasher (cette fois)."

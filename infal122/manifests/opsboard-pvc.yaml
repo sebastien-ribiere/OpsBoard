@@ -1,0 +1,11 @@
+# PVC de démonstration (TP stockage) : non monté par l'API, qui reste stateless.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: opsboard-data
+  namespace: infal122-lab
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 100Mi

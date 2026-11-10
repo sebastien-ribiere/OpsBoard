@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: opsboard
+  namespace: argocd
+spec:
+  project: opsboard
+  source:
+    repoURL: https://github.com/sebastien-ribiere/OpsBoard.git
+    targetRevision: feat/infal122-helm-argocd  # repasser sur main après merge de la PR
+    path: infal122/opsboard
+    helm:
+      releaseName: opsboard
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: infal122-lab
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true

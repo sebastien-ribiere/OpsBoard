@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: opsboard
+  namespace: argocd
+spec:
+  description: Projet OpsBoard (namespace infal122-lab)
+  sourceRepos:
+    - https://github.com/sebastien-ribiere/OpsBoard.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: infal122-lab
+  clusterResourceWhitelist: []
+  namespaceResourceWhitelist:
+    - group: ""
+      kind: "*"
+    - group: apps
+      kind: Deployment
+    - group: networking.k8s.io
+      kind: Ingress
+    - group: gateway.networking.k8s.io
+      kind: "*"
