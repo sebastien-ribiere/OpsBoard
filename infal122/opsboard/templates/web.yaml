@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opsboard-web
+  labels:
+    app: opsboard-web
+spec:
+  replicas: {{ .Values.web.replicas }}
+  selector:
+    matchLabels:
+      app: opsboard-web
+  template:
+    metadata:
+      labels:
+        app: opsboard-web
+    spec:
+      containers:
+        - name: opsboard-web
+          image: "{{ .Values.web.image.repository }}:{{ .Values.web.image.tag }}"
+          imagePullPolicy: {{ .Values.web.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.web.port }}
+          {{- include "opsboard.probes" (dict "ready" "/healthz" "live" "/healthz") | nindent 10 }}
+          resources:
+            {{- toYaml .Values.web.resources | nindent 12 }}
+          securityContext:
+            {{- include "opsboard.securityContext" . | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: nginx-run
+              mountPath: /var/run
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-run
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opsboard-web
+  labels:
+    app: opsboard-web
+spec:
+  type: ClusterIP
+  selector:
+    app: opsboard-web
+  ports:
+    - name: http
+      port: {{ .Values.web.port }}
+      targetPort: http

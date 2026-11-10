@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opsboard-web
+  namespace: infal122-lab
+  labels:
+    app: opsboard-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opsboard-web
+  template:
+    metadata:
+      labels:
+        app: opsboard-web
+    spec:
+      containers:
+        - name: opsboard-web
+          image: ghcr.io/sebastien-ribiere/opsboard-web:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: nginx-run
+              mountPath: /var/run
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-run
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opsboard-web
+  namespace: infal122-lab
+  labels:
+    app: opsboard-web
+spec:
+  type: ClusterIP
+  selector:
+    app: opsboard-web
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
