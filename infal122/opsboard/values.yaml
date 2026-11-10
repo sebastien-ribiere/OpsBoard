@@ -3,7 +3,7 @@ api:
     repository: ghcr.io/sebastien-ribiere/opsboard-api
     tag: latest
     pullPolicy: Always
-  replicas: 1
+  replicas: 3
   port: 8080
   config:
     ENVIRONNEMENT: "infal122-lab"
@@ -17,7 +17,7 @@ web:
     repository: ghcr.io/sebastien-ribiere/opsboard-web
     tag: latest
     pullPolicy: Always
-  replicas: 1
+  replicas: 3
   port: 8080
   resources:
     requests: {cpu: 25m, memory: 32Mi}
