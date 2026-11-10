@@ -6,6 +6,7 @@ FROM debian:trixie-slim AS patched-zlib
 
 RUN set -eu; \
     apt-get update; \
+    apt-get install -y --no-install-recommends zlib1g; \
     mkdir -p /tmp/zlib-deb /patched-root/var/lib/dpkg/status.d; \
     cd /tmp/zlib-deb; \
     apt-get download zlib1g; \
