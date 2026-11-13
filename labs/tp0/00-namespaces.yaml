@@ -1,0 +1,15 @@
+# TP 0 : namespace de l'application et namespace ephemere de validation CSI.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: opsboard
+  labels:
+    app.kubernetes.io/part-of: opsboard
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tp0-smoke
+  labels:
+    app.kubernetes.io/part-of: opsboard
+    opsboard.cesi.fr/purpose: lab-storage-smoke

@@ -1,0 +1,52 @@
+# TP 0 : Pod de validation du montage PVC.
+# Image API v1 identifiee par son digest et verifiee dans la CI GHCR.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: volume-consumer
+  namespace: tp0-smoke
+  labels:
+    app.kubernetes.io/name: volume-consumer
+    app.kubernetes.io/part-of: opsboard
+spec:
+  restartPolicy: Never
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 65532
+    runAsGroup: 65532
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: api
+      image: ghcr.io/sebastien-ribiere/opsboard-api@sha256:00de72240c1152ffb9fb064ae357d1a169d2a2fbcc407b112044be4f5d7637a4
+      imagePullPolicy: IfNotPresent
+      ports:
+        - containerPort: 8080
+          name: http
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop:
+            - ALL
+      resources:
+        requests:
+          cpu: 25m
+          memory: 32Mi
+        limits:
+          cpu: 200m
+          memory: 128Mi
+      readinessProbe:
+        httpGet:
+          path: /health/ready
+          port: http
+        periodSeconds: 3
+        timeoutSeconds: 2
+        failureThreshold: 3
+      volumeMounts:
+        - name: data
+          mountPath: /app/data
+  volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: data
